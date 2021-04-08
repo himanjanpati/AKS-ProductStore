@@ -1,0 +1,23 @@
+FROM mcr.microsoft.com/dotnet/sdk:2.1-alpine AS Build
+WORKDIR /source
+
+COPY ["BackEndAPIs.csproj","back-end/"]
+RUN dotnet restore "back-end/BackEndAPIs.csproj"
+
+COPY . "/source/back-end/"
+
+WORKDIR "/source/back-end"
+RUN dotnet build "BackEndAPIs.csproj" -c Release -o /app/build
+
+FROM Build AS Publish
+RUN dotnet publish "BackEndAPIs.csproj" -c Release -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/aspnet:2.1-alpine AS Final
+WORKDIR /app
+ENV ASPNETCORE_ENVIRONMENT Development
+ENV ProductstoreDatabaseSettings__ConnectionString mongodb://shop-db:27017
+ENV ProductstoreDatabaseSettings__DatabaseName productsstore
+EXPOSE 80
+
+COPY --from=Publish /app/publish .
+ENTRYPOINT [ "dotnet","BackEndAPIs.dll" ]
