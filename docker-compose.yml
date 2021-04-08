@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   mongo:
-    image: mongo:3.6.1-jessie
+    image: mongo
     container_name: mongo
     build:
       context: db
